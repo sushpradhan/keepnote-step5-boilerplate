@@ -1,5 +1,5 @@
 {
-  "workflow": "OpenJDK8MavenMySQLMongoSpringApp",
+  "workflow": "OpenJDK8SpringMySQLMongoApp",
   "scores": {
     "commanderTests":40,
     "cadetTests":40,
