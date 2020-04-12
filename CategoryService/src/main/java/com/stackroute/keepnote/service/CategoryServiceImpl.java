@@ -1,11 +1,16 @@
 package com.stackroute.keepnote.service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.stackroute.keepnote.exception.CategoryDoesNoteExistsException;
 import com.stackroute.keepnote.exception.CategoryNotCreatedException;
 import com.stackroute.keepnote.exception.CategoryNotFoundException;
 import com.stackroute.keepnote.model.Category;
+import com.stackroute.keepnote.repository.CategoryRepository;
 
 /*
 * Service classes are used here to implement additional business logic/validation 
@@ -16,7 +21,7 @@ import com.stackroute.keepnote.model.Category;
 * better. Additionally, tool support and additional behavior might rely on it in the 
 * future.
 * */
-
+@Service
 public class CategoryServiceImpl implements CategoryService {
 
 	/*
@@ -24,6 +29,13 @@ public class CategoryServiceImpl implements CategoryService {
 	 * Constructor-based autowiring) Please note that we should not create any
 	 * object using the new keyword.
 	 */
+	@Autowired
+	CategoryRepository categoryRepository;
+
+	public CategoryServiceImpl(CategoryRepository categoryRepository) {
+		super();
+		this.categoryRepository = categoryRepository;
+	}
 
 	/*
 	 * This method should be used to save a new category.Call the corresponding
@@ -31,7 +43,12 @@ public class CategoryServiceImpl implements CategoryService {
 	 */
 	public Category createCategory(Category category) throws CategoryNotCreatedException {
 
-		return null;
+		Category create = categoryRepository.insert(category);
+		if (create != null) {
+			return create;
+		} else {
+			throw new CategoryNotCreatedException("CategoryNotCreatedException");
+		}
 	}
 
 	/*
@@ -40,7 +57,14 @@ public class CategoryServiceImpl implements CategoryService {
 	 */
 	public boolean deleteCategory(String categoryId) throws CategoryDoesNoteExistsException {
 
-		return false;
+		Category found = categoryRepository.findById(categoryId).get();
+		if (found == null) {
+			throw new CategoryDoesNoteExistsException("CategoryDoesNoteExistsException");
+		} else {
+			categoryRepository.delete(found);
+		}
+
+		return true;
 	}
 
 	/*
@@ -49,7 +73,11 @@ public class CategoryServiceImpl implements CategoryService {
 	 */
 	public Category updateCategory(Category category, String categoryId) {
 
-		return null;
+		Category update = categoryRepository.findById(categoryId).get();
+		if (update != null) {
+			categoryRepository.save(category);
+		}
+		return update;
 	}
 
 	/*
@@ -57,8 +85,16 @@ public class CategoryServiceImpl implements CategoryService {
 	 * corresponding method of Respository interface.
 	 */
 	public Category getCategoryById(String categoryId) throws CategoryNotFoundException {
+		try {
+			if (categoryRepository.findById(categoryId).isPresent() && categoryId != null) {
+				return categoryRepository.findById(categoryId).get();
 
-		return null;
+			} else {
+				throw new CategoryNotFoundException("CategoryNotFoundException");
+			}
+		} catch (NoSuchElementException ex) {
+			throw new CategoryNotFoundException("CategoryNotFoundException");
+		}
 	}
 
 	/*
@@ -67,7 +103,7 @@ public class CategoryServiceImpl implements CategoryService {
 	 */
 	public List<Category> getAllCategoryByUserId(String userId) {
 
-		return null;
+		return categoryRepository.findAllCategoryByCategoryCreatedBy(userId);
 	}
 
 }
